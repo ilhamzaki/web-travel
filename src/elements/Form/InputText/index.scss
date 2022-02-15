@@ -1,5 +1,4 @@
-@import "../../assets/scss/colorVariables";
-
+@import "../../../assets/scss/colorVariables";
 .input-text {
   margin-bottom: 20px;
   position: relative;
@@ -8,7 +7,7 @@
     .input-group-text {
       pointer-events: none;
       border: 0;
-      cursor: 0;
+      cursor: auto;
       padding: 0;
       border-radius: 4px !important;
       width: 45px;
@@ -37,6 +36,7 @@
     position: absolute;
     top: 45px;
     background-color: $red;
+    color: $white;
     padding: 0 2px;
     font-size: 0.675rem;
   }
