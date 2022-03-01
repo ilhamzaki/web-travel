@@ -1,4 +1,6 @@
 import React, { Component } from "react";
+import Fade from "react-reveal/Fade";
+import { connect } from "react-redux";
 
 import Header from "parts/Header";
 import Button from "elements/Button";
@@ -13,10 +15,9 @@ import BookingInformation from "parts/Checkout/BookingInformation";
 import Payment from "parts/Checkout/Payment";
 import Completed from "parts/Checkout/Completed";
 
-import ItemDetails from "json/itemDetails.json";
-import { Fade } from "react-reveal";
+import { submitBooking } from "store/actions/checkout";
 
-export default class Checkout extends Component {
+class Checkout extends Component {
   state = {
     data: {
       firstName: "",
@@ -42,12 +43,62 @@ export default class Checkout extends Component {
     window.scroll(0, 0);
   }
 
+  _Submit = (nextStep) => {
+    const { data } = this.state;
+    const { checkout } = this.props;
+
+    const payload = new FormData();
+    payload.append("idItem", checkout._id);
+    payload.append("firstName", data.firstName);
+    payload.append("lastName", data.lastName);
+    payload.append("email", data.email);
+    payload.append("phoneNumber", data.phone);
+    payload.append("duration", checkout.duration);
+    payload.append("bookingStartDate", checkout.date.startDate);
+    payload.append("bookingEndDate", checkout.date.endDate);
+    payload.append("accountHolder", data.bankHolder);
+    payload.append("bankFrom", data.bankName);
+    payload.append("image", data.proofPayment[0]);
+    // payload.append("bankId", data.bankId);
+
+    this.props
+      .submitBooking(payload)
+      .then(() => {
+        nextStep();
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+
   render() {
     const { data } = this.state;
+    const { checkout, page } = this.props;
+    console.log(page, data);
 
-    const checkout = {
-      duration: 3,
-    };
+    if (!checkout)
+      return (
+        <div className="container">
+          <div
+            className="row align-items-center justify-content-center text-center"
+            style={{ height: "100vh" }}
+          >
+            <div className="col-3">
+              Pilih kamar dlu
+              <div>
+                <Button
+                  className="btn mt-5"
+                  type="button"
+                  onClick={() => this.props.history.goBack()}
+                  isLight
+                >
+                  Back
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
 
     const steps = {
       bookingInformation: {
@@ -57,7 +108,7 @@ export default class Checkout extends Component {
           <BookingInformation
             data={data}
             checkout={checkout}
-            ItemDetails={ItemDetails}
+            ItemDetails={page[checkout._id]}
             onChange={this.onChange}
           />
         ),
@@ -68,7 +119,7 @@ export default class Checkout extends Component {
         content: (
           <Payment
             data={data}
-            ItemDetails={ItemDetails}
+            ItemDetails={page[checkout._id]}
             checkout={checkout}
             onChange={this.onChange}
           />
@@ -122,7 +173,7 @@ export default class Checkout extends Component {
                     type="link"
                     isBlock
                     isLight
-                    href={`/properties/${ItemDetails._id}`}
+                    href={`/properties/${checkout._id}`}
                   >
                     Cancel
                   </Button>
@@ -141,7 +192,7 @@ export default class Checkout extends Component {
                           isBlock
                           isPrimary
                           hasShadow
-                          onClick={nextStep}
+                          onClick={() => this._Submit(nextStep)}
                         >
                           Continue to Book
                         </Button>
@@ -180,3 +231,10 @@ export default class Checkout extends Component {
     );
   }
 }
+
+const mapStateToProps = (state) => ({
+  page: state.page,
+  checkout: state.checkout,
+});
+
+export default connect(mapStateToProps, { submitBooking })(Checkout);
